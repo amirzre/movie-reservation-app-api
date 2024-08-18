@@ -17,6 +17,7 @@ PyJWT = "^2.9.0"
 ujson = "^5.10.0"
 fastapi = {extras = ["standard"], version = "^0.112.0"}
 asyncpg = "^0.29.0"
+bcrypt = "^4.2.0"
 
 [tool.poetry.group.dev]
 optional = true
