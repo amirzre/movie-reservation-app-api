@@ -1,5 +1,4 @@
 from enum import Enum
 
 
-class CacheTag(Enum):
-    ...
+class CacheTag(Enum): ...
