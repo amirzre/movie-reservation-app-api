@@ -1,14 +1,7 @@
-from contextlib import asynccontextmanager
 from contextvars import ContextVar, Token
-from enum import Enum
-from typing import AsyncGenerator
+from typing import Union
 
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_scoped_session,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, async_scoped_session, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Session
 from sqlalchemy.sql.expression import Delete, Insert, Update
 
@@ -29,59 +22,42 @@ def reset_session_context(context: Token) -> None:
     session_context.reset(context)
 
 
-class EngineType(Enum):
-    WRITER = "writer"
-    READER = "reader"
-
-
 engines = {
-    "writer": create_async_engine(
-        config.POSTGRES_URL.unicode_string(),
-        pool_size=config.SQLALCHEMY_POOL_SIZE,
-        pool_timeout=config.SQLALCHEMY_POOL_TIMEOUT,
-        pool_recycle=config.SQLALCHEMY_POOL_RECYCLE,
-        pool_pre_ping=True,
-    ),
-    "reader": create_async_engine(
-        config.POSTGRES_URL.unicode_string(),
-        pool_size=config.SQLALCHEMY_POOL_SIZE,
-        pool_timeout=config.SQLALCHEMY_POOL_TIMEOUT,
-        pool_recycle=config.SQLALCHEMY_POOL_RECYCLE,
-        pool_pre_ping=True,
-    ),
+    "writer": create_async_engine(config.POSTGRES_URL.unicode_string(), pool_recycle=3600),
+    "reader": create_async_engine(config.POSTGRES_URL.unicode_string(), pool_recycle=3600),
 }
 
 
 class RoutingSession(Session):
-    def get_bind(self, mapper=None, clause=None, **kw):
+    def get_bind(self, mapper=None, clause=None, **kwargs):
         if self._flushing or isinstance(clause, (Update, Delete, Insert)):
-            return engines[EngineType.WRITER].sync_engine
-        else:
-            return engines[EngineType.READER].sync_engine
+            return engines["writer"].sync_engine
+        return engines["reader"].sync_engine
 
 
-_async_session_factory = async_sessionmaker(
+async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     sync_session_class=RoutingSession,
     expire_on_commit=False,
 )
-session = async_scoped_session(
-    session_factory=_async_session_factory,
+
+session: Union[AsyncSession, async_scoped_session] = async_scoped_session(
+    session_factory=async_session_factory,
     scopefunc=get_session_context,
 )
 
 
-class Base(DeclarativeBase): ...
+async def get_session():
+    """
+    Get the database session.
+    This can be used for dependency injection.
 
-
-@asynccontextmanager
-async def session_factory() -> AsyncGenerator[AsyncSession, None]:
-    _session = async_sessionmaker(
-        class_=AsyncSession,
-        sync_session_class=RoutingSession,
-        expire_on_commit=False,
-    )()
+    :return: The database session.
+    """
     try:
-        yield _session
+        yield session
     finally:
-        await _session.close()
+        await session.close()
+
+
+class Base(DeclarativeBase): ...
