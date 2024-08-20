@@ -72,3 +72,10 @@ class UserController(BaseController[User]):
             user.password = PasswordHandler.hash(password=password)
 
         return await self.user_repository.update(model=user, attributes={})
+
+    async def delete(self, *, user_uuid: UUID) -> None:
+        user = await self.user_repository.get_by_uuid(uuid=user_uuid)
+        if not user:
+            raise NotFoundException(message="User not found.")
+
+        return await self.user_repository.delete(model=user)
