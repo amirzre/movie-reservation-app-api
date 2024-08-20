@@ -47,3 +47,28 @@ class UserController(BaseController[User]):
                 "password": password,
             }
         )
+
+    @Transactional(propagation=Propagation.REQUIRED)
+    async def update(
+        self,
+        *,
+        user_uuid: UUID,
+        email: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        password: str | None = None,
+    ) -> User:
+        user = await self.user_repository.get_by_uuid(uuid=user_uuid)
+        if not user:
+            raise NotFoundException(message="User not found.")
+
+        if email is not None:
+            user.email = email
+        if first_name is not None:
+            user.first_name = first_name
+        if last_name is not None:
+            user.last_name = last_name
+        if password is not None:
+            user.password = PasswordHandler.hash(password=password)
+
+        return await self.user_repository.update(model=user, attributes={})
