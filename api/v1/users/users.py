@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from app.controllers import UserController
 from app.schemas.request import RegisterUserRequest, UpdateUserRequest
@@ -26,7 +26,7 @@ async def get_user(uuid=UUID, user_controller: UserController = Depends(Factory(
     return await user_controller.get_by_uuid(uuid=uuid)
 
 
-@user_router.post("/", status_code=201)
+@user_router.post("/", status_code=status.HTTP_201_CREATED)
 async def register_user(
     register_user_request: RegisterUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
@@ -60,3 +60,14 @@ async def update_user(
         last_name=update_user_request.last_name,
         password=update_user_request.password,
     )
+
+
+@user_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    uuid: UUID,
+    user_controller: UserController = Depends(Factory().get_user_controller),
+) -> None:
+    """
+    Delete a user.
+    """
+    return await user_controller.delete(user_uuid=uuid)
