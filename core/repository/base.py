@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import reduce
 from typing import Any, Generic, Type, TypeVar
 
@@ -70,6 +71,23 @@ class BaseRepository(Generic[ModelType]):
             attributes = {}
         model = self.model_class(**attributes)
         self.session.add(model)
+        return model
+
+    async def update(self, model: ModelType, attributes: dict[str, Any]) -> ModelType:
+        """
+        Updates the model instance with the given attributes.
+
+        :param model: The model instance to update.
+        :param attributes: A dictionary of attributes to update the model with.
+        :return: The updated model instance.
+        """
+        for key, value in attributes.items():
+            setattr(model, key, value)
+
+        if hasattr(model, "updated"):
+            setattr(model, "updated", datetime.now())
+
+        await self.session.commit()
         return model
 
     async def delete(self, model: ModelType) -> None:
