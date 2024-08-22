@@ -3,8 +3,9 @@ from typing import Any
 
 import ujson
 
+from core.redis import redis_client
+
 from .base import BaseBackend
-from .redis import redis_client
 
 
 class RedisBackend(BaseBackend):
