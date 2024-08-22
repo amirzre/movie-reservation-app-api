@@ -55,3 +55,9 @@ class AuthController(BaseController[User]):
             access_token=access_token,
             refresh_token=refresh_token,
         )
+
+    async def logout(self, *, refresh_token: str, cache: client.Redis) -> None:
+        if not refresh_token:
+            raise NotFoundException(message="Refresh token not found.")
+        await cache.delete(refresh_token)
+        return None
