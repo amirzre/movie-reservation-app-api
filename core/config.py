@@ -30,7 +30,8 @@ class Config(BaseConfig):
 
     SECRET_KEY: str = token_urlsafe(32)
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 60 * 24
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     SQLALCHEMY_POOL_SIZE: int = 15
     SQLALCHEMY_POOL_TIMEOUT: int = 30
