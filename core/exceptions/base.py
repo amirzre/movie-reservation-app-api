@@ -11,6 +11,12 @@ class CustomException(Exception):
             self.message = message
 
 
+class InternalException(CustomException):
+    code = HTTPStatus.INTERNAL_SERVER_ERROR
+    error_code = HTTPStatus.INTERNAL_SERVER_ERROR
+    message = HTTPStatus.INTERNAL_SERVER_ERROR.description
+
+
 class BadRequestException(CustomException):
     code = HTTPStatus.BAD_REQUEST
     error_code = HTTPStatus.BAD_REQUEST
