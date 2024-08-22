@@ -2,10 +2,17 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from redis.asyncio import client
 
 from app.controllers import AuthController
+from app.models import User
 from app.schemas.request import UserLoginRequest
+from app.schemas.response import UserResponse
 from core.exceptions import NotFoundException
 from core.factory import Factory
-from core.fastapi.dependencies import get_authenticated_user, get_cache, get_current_user_with_refresh_token
+from core.fastapi.dependencies import (
+    get_authenticated_user,
+    get_cache,
+    get_current_user,
+    get_current_user_with_refresh_token,
+)
 from core.security import JWTHandler
 
 auth_router = APIRouter()
@@ -80,6 +87,16 @@ async def refresh(
         samesite="strict",
         expires=JWTHandler.token_expiration(tokens.refresh_token),
     )
+
+
+@auth_router.get("/me", status_code=status.HTTP_200_OK)
+async def me(
+    user: User = Depends(get_current_user),
+) -> UserResponse:
+    """
+    Retrieve current user information.
+    """
+    return user
 
 
 @auth_router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_authenticated_user)])
