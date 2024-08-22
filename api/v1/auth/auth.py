@@ -5,7 +5,7 @@ from app.controllers import AuthController
 from app.schemas.request import UserLoginRequest
 from core.exceptions import NotFoundException
 from core.factory import Factory
-from core.fastapi.dependencies import get_cache, get_current_user_with_refresh_token
+from core.fastapi.dependencies import get_authenticated_user, get_cache, get_current_user_with_refresh_token
 from core.security import JWTHandler
 
 auth_router = APIRouter()
@@ -79,4 +79,33 @@ async def refresh(
         httponly=True,
         samesite="strict",
         expires=JWTHandler.token_expiration(tokens.refresh_token),
+    )
+
+
+@auth_router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_authenticated_user)])
+async def logout(
+    request: Request,
+    response: Response,
+    cache: client.Redis = Depends(get_cache),
+    auth_controller: AuthController = Depends(Factory().get_auth_controller),
+) -> None:
+    """
+    Logout user.
+    """
+    await auth_controller.logout(
+        refresh_token=request.cookies.get("Refresh-Token", ""),
+        cache=cache,
+    )
+
+    response.delete_cookie(
+        key="Access-Token",
+        secure=True,
+        httponly=True,
+        samesite="strict",
+    )
+    response.delete_cookie(
+        key="Refresh-Token",
+        secure=True,
+        httponly=True,
+        samesite="strict",
     )
