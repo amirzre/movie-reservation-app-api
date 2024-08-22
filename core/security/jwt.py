@@ -46,7 +46,7 @@ class JWTHandler:
     def decode(token: str) -> dict:
         try:
             return jwt.decode(
-                token=token,
+                token,
                 key=JWTHandler.secret_key,
                 algorithms=[JWTHandler.algorithm],
             )
@@ -59,7 +59,7 @@ class JWTHandler:
     def decode_expired(token: str) -> dict:
         try:
             return jwt.decode(
-                token=token,
+                token,
                 key=JWTHandler.secret_key,
                 algorithms=[JWTHandler.algorithm],
                 options={"verify_exp": False},
