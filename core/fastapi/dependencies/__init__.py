@@ -1,3 +1,4 @@
+from .cache import get_cache
 from .logging import Logging
 from .permission import (
     AllowAll,
@@ -10,4 +11,5 @@ __all__ = [
     "PermissionDependency",
     "IsAuthenticated",
     "AllowAll",
+    "get_cache",
 ]
