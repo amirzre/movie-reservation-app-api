@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import jwt
 from pydantic import BaseModel, Field
 from starlette.authentication import AuthenticationBackend
@@ -10,7 +12,7 @@ from core.config import config
 
 
 class CurrentUser(BaseModel):
-    id: int = Field(None, description="ID")
+    uuid: UUID = Field(None, description="UUID")
 
 
 class AuthBackend(AuthenticationBackend):
@@ -33,14 +35,14 @@ class AuthBackend(AuthenticationBackend):
         try:
             payload = jwt.decode(
                 credentials,
-                config.JWT_SECRET_KEY,
+                config.SECRET_KEY,
                 algorithms=[config.JWT_ALGORITHM],
             )
-            user_id = payload.get("user_id")
+            user_uuid = payload.get("uuid")
         except jwt.exceptions.PyJWTError:
             return False, current_user
 
-        current_user.id = user_id
+        current_user.uuid = user_uuid
         return True, current_user
 
 
