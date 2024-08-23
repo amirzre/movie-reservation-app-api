@@ -5,6 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.controllers import UserController
 from app.models import User
+from core.exceptions import BadRequestException
 from core.factory import Factory
 
 from .authentication import AuthenticationHandler
@@ -24,7 +25,10 @@ async def get_current_user(
 ) -> User:
     handler = AuthenticationHandler(request)
     user_uuid = await handler.authenticate_user(token_type="Access", key="uuid", credentials=token)
-    return await user_controller.get_by_uuid(uuid=user_uuid)
+    user = await user_controller.get_by_uuid(uuid=user_uuid)
+    if user.activated is False:
+        raise BadRequestException(message="The user is inactive.")
+    return user
 
 
 async def get_current_user_with_refresh_token(
