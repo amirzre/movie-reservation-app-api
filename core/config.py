@@ -24,9 +24,9 @@ class Config(BaseConfig):
     ENVIRONMENT: EnvironmentType = EnvironmentType.DEVELOPMENT
     WORKERS: int = 1
 
-    POSTGRES_URL: PostgresDsn
-    POSTGRES_TEST_URL: PostgresDsn
-    REDIS_URL: RedisDsn
+    POSTGRES_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation"
+    POSTGRES_TEST_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation-test"
+    REDIS_URL: RedisDsn = "redis://localhost:6379/0"
 
     SECRET_KEY: str = token_urlsafe(32)
     JWT_ALGORITHM: str = "HS256"
