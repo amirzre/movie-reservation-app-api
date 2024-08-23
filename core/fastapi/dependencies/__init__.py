@@ -6,16 +6,14 @@ from .current_user import (
 )
 from .logging import Logging
 from .permission import (
-    AllowAll,
-    IsAuthenticated,
-    PermissionDependency,
+    ADMINISTRATIVE,
+    RoleChecker,
 )
 
 __all__ = [
     "Logging",
-    "PermissionDependency",
-    "IsAuthenticated",
-    "AllowAll",
+    "ADMINISTRATIVE",
+    "RoleChecker",
     "get_cache",
     "get_authenticated_user",
     "get_current_user",
