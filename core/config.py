@@ -2,7 +2,7 @@ from enum import auto
 from secrets import token_urlsafe
 
 from pydantic import PostgresDsn, RedisDsn
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from core.enum import StrEnum
 
@@ -14,8 +14,9 @@ class EnvironmentType(StrEnum):
 
 
 class BaseConfig(BaseSettings):
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="", env_nested_delimiter="__", case_sensitive= True
+    )
 
 
 class Config(BaseConfig):
@@ -25,7 +26,7 @@ class Config(BaseConfig):
     WORKERS: int = 1
 
     POSTGRES_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation"
-    POSTGRES_TEST_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation-test"
+    POSTGRES_TEST_URL: PostgresDsn
     REDIS_URL: RedisDsn = "redis://localhost:6379/0"
 
     SECRET_KEY: str = token_urlsafe(32)
