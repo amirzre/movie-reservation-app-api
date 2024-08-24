@@ -1,41 +1,54 @@
-import asyncio
-import os
-from typing import Generator
+from typing import AsyncGenerator
 
-import pytest
 import pytest_asyncio
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import core.db.transactional as transactional
 from app.models import Base
 from core.config import config
+from core.db import get_session
+from core.server import app
 
-POSTGRES_TEST_URL = os.getenv("POSTGRES_TEST_URL")
+engine = create_async_engine(config.POSTGRES_TEST_URL.unicode_string(), pool_pre_ping=True)
 
-config.POSTGRES_URL = POSTGRES_TEST_URL
+async_session_local = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
 
 
-@pytest.fixture(scope="function")
-def event_loop(request) -> Generator:
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+async def override_get_session() -> AsyncGenerator:
+    async with async_session_local() as session:
+        yield session
+        await session.commit()
+
+
+app.dependency_overrides[get_session] = override_get_session
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncSession:
-    async_engine = create_async_engine(config.POSTGRES_URL)
-    session = async_sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+    async_engine = engine
+    async_session = async_session_local
 
-    async with session() as s:
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-        transactional.session = s
-        yield s
+    async with async_session() as session:
+        async with async_engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
+        transactional.session = session
+        yield session
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         pass
 
     await async_engine.dispose()
+
+
+@pytest_asyncio.fixture(scope="module")
+async def client() -> AsyncClient:
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client

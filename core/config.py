@@ -14,9 +14,7 @@ class EnvironmentType(StrEnum):
 
 
 class BaseConfig(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env", env_prefix="", env_nested_delimiter="__", case_sensitive= True
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="", env_nested_delimiter="__", case_sensitive=True)
 
 
 class Config(BaseConfig):
