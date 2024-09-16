@@ -1,3 +1,6 @@
+import asyncio
+
+import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -16,19 +19,27 @@ async_session_local = async_sessionmaker(
 )
 
 
+@pytest.fixture(scope="session")
+def event_loop():
+    """
+    Create an event loop for the entire test session.
+    """
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncSession:
-    async_engine = engine
-    async_session = async_session_local
-
-    async with async_session() as session:
-        async with async_engine.begin() as connection:
+    """
+    Creates a new database session and initializes the database schema for each test module.
+    """
+    async with async_session_local() as session:
+        async with engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
         transactional.session = session
         yield session
 
-    async with async_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        pass
-
-    await async_engine.dispose()
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
