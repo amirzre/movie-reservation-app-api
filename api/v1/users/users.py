@@ -20,11 +20,11 @@ async def get_users(user_controller: UserController = Depends(Factory().get_user
 
 
 @user_router.get("/{id}", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
-async def get_user(uuid=UUID, user_controller: UserController = Depends(Factory().get_user_controller)) -> UserResponse:
+async def get_user(id=UUID, user_controller: UserController = Depends(Factory().get_user_controller)) -> UserResponse:
     """
     Retrieve user by ID.
     """
-    return await user_controller.get_by_uuid(uuid=uuid)
+    return await user_controller.get_by_uuid(uuid=id)
 
 
 @user_router.post("/", status_code=status.HTTP_201_CREATED)
@@ -47,7 +47,7 @@ async def register_user(
 
 @user_router.put("/{id}")
 async def update_user(
-    uuid: UUID,
+    id: UUID,
     update_user_request: UpdateUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ) -> UserResponse:
@@ -55,7 +55,7 @@ async def update_user(
     Update a user.
     """
     return await user_controller.update(
-        user_uuid=uuid,
+        user_uuid=id,
         email=update_user_request.email,
         first_name=update_user_request.first_name,
         last_name=update_user_request.last_name,
@@ -65,10 +65,10 @@ async def update_user(
 
 @user_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    uuid: UUID,
+    id: UUID,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ) -> None:
     """
     Delete a user.
     """
-    return await user_controller.delete(user_uuid=uuid)
+    return await user_controller.delete(user_uuid=id)

@@ -1,4 +1,5 @@
 from passlib.context import CryptContext
+from passlib.handlers.bcrypt import bcrypt
 
 
 class PasswordHandler:
@@ -13,4 +14,5 @@ class PasswordHandler:
 
     @staticmethod
     def verify(hashed_password: str, plain_password: str) -> bool:
-        return PasswordHandler.pwd_context.verify(plain_password, hashed_password)
+        normalized_hash = bcrypt.normhash(hashed_password)
+        return PasswordHandler.pwd_context.verify(plain_password, normalized_hash)
