@@ -1,8 +1,8 @@
 """add_movies_table
 
-Revision ID: 26ccb64fa5c6
+Revision ID: d68398464722
 Revises: f567ece18f12
-Create Date: 2024-09-17 03:03:25.436540
+Create Date: 2024-09-18 03:25:39.252618
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '26ccb64fa5c6'
+revision: str = 'd68398464722'
 down_revision: Union[str, None] = 'f567ece18f12'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,8 +24,8 @@ def upgrade() -> None:
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('uuid', sa.UUID(), nullable=False),
     sa.Column('title', sa.String(length=255), nullable=False),
-    sa.Column('description', sa.Text(), nullable=False),
-    sa.Column('poster', sa.String(), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('poster', sa.String(), nullable=True),
     sa.Column('genre', sa.String(length=50), nullable=False),
     sa.Column('release_date', sa.DateTime(), nullable=False),
     sa.Column('activated', sa.Boolean(), nullable=False),
