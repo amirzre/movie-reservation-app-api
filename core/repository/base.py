@@ -69,6 +69,11 @@ class BaseRepository(Generic[ModelType]):
         """
         if attributes is None:
             attributes = {}
+
+        for key, value in attributes.items():
+            if isinstance(value, datetime) and value.tzinfo is not None:
+                attributes[key] = value.replace(tzinfo=None)
+
         model = self.model_class(**attributes)
         self.session.add(model)
         return model
