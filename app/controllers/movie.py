@@ -1,8 +1,10 @@
+from datetime import datetime
 from uuid import UUID
 
 from app.models import Movie
 from app.repositories import MovieRepository
 from core.controller import BaseController
+from core.db import Propagation, Transactional
 from core.exceptions import NotFoundException
 
 
@@ -20,3 +22,23 @@ class MovieController(BaseController[Movie]):
         if not movie:
             raise NotFoundException(message="Movie not found.")
         return movie
+
+    @Transactional(propagation=Propagation.REQUIRED)
+    async def create_movie(
+        self,
+        *,
+        title: str,
+        description: str | None,
+        genre: str,
+        release_date: datetime,
+        activated: bool | None = True,
+    ) -> Movie:
+        return await self.movie_repository.create(
+            attributes={
+                "title": title,
+                "description": description,
+                "genre": genre,
+                "release_date": release_date,
+                "activated": activated,
+            }
+        )
