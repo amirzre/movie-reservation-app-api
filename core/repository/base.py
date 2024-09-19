@@ -87,6 +87,10 @@ class BaseRepository(Generic[ModelType]):
         :return: The updated model instance.
         """
         for key, value in attributes.items():
+            if isinstance(value, datetime):
+                if value.tzinfo is not None:
+                    value = value.replace(tzinfo=None)
+                attributes[key] = value
             setattr(model, key, value)
 
         if hasattr(model, "updated"):
