@@ -71,3 +71,10 @@ class MovieController(BaseController[Movie]):
             attributes["activated"] = activated
 
         return await self.movie_repository.update(model=movie, attributes=attributes)
+
+    async def delete_movie(self, *, movie_uuid) -> None:
+        movie = await self.movie_repository.get_by_uuid(uuid=movie_uuid)
+        if not movie:
+            raise NotFoundException(message="Movie not found.")
+
+        return await self.movie_repository.delete(model=movie)
