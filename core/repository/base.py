@@ -107,6 +107,7 @@ class BaseRepository(Generic[ModelType]):
         :return: None
         """
         await self.session.delete(model)
+        await self.session.commit()
 
     def _query(
         self,
