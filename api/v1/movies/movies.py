@@ -56,7 +56,7 @@ async def update_movie(
     movie_controller: MovieController = Depends(Factory().get_movie_controller),
 ) -> MovieResponse:
     """
-    Update movie.
+    Update a movie.
     """
     return await movie_controller.update_movie(
         movie_uuid=id,
@@ -66,3 +66,16 @@ async def update_movie(
         release_date=update_movie_request.release_date,
         activated=update_movie_request.activated,
     )
+
+
+@movie_router.delete(
+    "/{id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(RoleChecker(ADMINISTRATIVE))]
+)
+async def delete_movie(
+    id: UUID,
+    movie_controller: MovieController = Depends(Factory().get_movie_controller),
+) -> None:
+    """
+    Delete a movie.
+    """
+    return await movie_controller.delete_movie(movie_uuid=id)
