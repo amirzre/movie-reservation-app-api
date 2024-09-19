@@ -42,3 +42,32 @@ class MovieController(BaseController[Movie]):
                 "activated": activated,
             }
         )
+
+    @Transactional(propagation=Propagation.REQUIRED)
+    async def update_movie(
+        self,
+        *,
+        movie_uuid: UUID,
+        title: str | None = None,
+        description: str | None = None,
+        genre: str | None = None,
+        release_date: datetime | None = None,
+        activated: bool | None = True,
+    ) -> Movie:
+        movie = await self.movie_repository.get_by_uuid(uuid=movie_uuid)
+        if not movie:
+            raise NotFoundException(message="Movie not found.")
+
+        attributes = {}
+        if title is not None:
+            attributes["title"] = title
+        if description is not None:
+            attributes["description"] = description
+        if genre is not None:
+            attributes["genre"] = genre
+        if release_date is not None:
+            attributes["release_date"] = release_date
+        if activated is not None:
+            attributes["activated"] = activated
+
+        return await self.movie_repository.update(model=movie, attributes=attributes)
