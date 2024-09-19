@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 
 from app.controllers import MovieController
-from app.schemas.request import CreateMovieRequest
+from app.schemas.request import CreateMovieRequest, UpdateMovieRequest
 from app.schemas.response import MovieResponse
 from core.factory import Factory
 from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker
@@ -33,7 +33,7 @@ async def get_movie(
 
 
 @movie_router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
-async def create(
+async def create_movie(
     create_movie_request: CreateMovieRequest,
     movie_controller: MovieController = Depends(Factory().get_movie_controller),
 ) -> MovieResponse:
@@ -46,4 +46,23 @@ async def create(
         genre=create_movie_request.genre,
         release_date=create_movie_request.release_date,
         activated=create_movie_request.activated,
+    )
+
+
+@movie_router.put("/{id}", status_code=status.HTTP_200_OK, dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
+async def update_movie(
+    id: UUID,
+    update_movie_request: UpdateMovieRequest,
+    movie_controller: MovieController = Depends(Factory().get_movie_controller),
+) -> MovieResponse:
+    """
+    Update movie.
+    """
+    return await movie_controller.update_movie(
+        movie_uuid=id,
+        title=update_movie_request.title,
+        description=update_movie_request.description,
+        genre=update_movie_request.genre,
+        release_date=update_movie_request.release_date,
+        activated=update_movie_request.activated,
     )
