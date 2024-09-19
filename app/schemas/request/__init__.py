@@ -1,5 +1,5 @@
 from .auth import UserLoginRequest
-from .movie import CreateMovieRequest
+from .movie import CreateMovieRequest, UpdateMovieRequest
 from .user import RegisterUserRequest, UpdateUserRequest
 
 __all__ = [
@@ -7,4 +7,5 @@ __all__ = [
     "UpdateUserRequest",
     "UserLoginRequest",
     "CreateMovieRequest",
+    "UpdateMovieRequest",
 ]
