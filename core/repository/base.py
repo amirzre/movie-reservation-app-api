@@ -69,6 +69,11 @@ class BaseRepository(Generic[ModelType]):
         """
         if attributes is None:
             attributes = {}
+
+        for key, value in attributes.items():
+            if isinstance(value, datetime) and value.tzinfo is not None:
+                attributes[key] = value.replace(tzinfo=None)
+
         model = self.model_class(**attributes)
         self.session.add(model)
         return model
@@ -82,6 +87,10 @@ class BaseRepository(Generic[ModelType]):
         :return: The updated model instance.
         """
         for key, value in attributes.items():
+            if isinstance(value, datetime):
+                if value.tzinfo is not None:
+                    value = value.replace(tzinfo=None)
+                attributes[key] = value
             setattr(model, key, value)
 
         if hasattr(model, "updated"):
@@ -98,6 +107,7 @@ class BaseRepository(Generic[ModelType]):
         :return: None
         """
         await self.session.delete(model)
+        await self.session.commit()
 
     def _query(
         self,
