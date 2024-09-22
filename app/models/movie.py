@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from sqlalchemy import UUID, BigInteger, Boolean, DateTime, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
 from core.db.mixins import TimestampMixin
@@ -19,3 +19,5 @@ class Movie(Base, TimestampMixin):
     genre: Mapped[str] = mapped_column(String(50), nullable=False)
     release_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     activated: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    showtimes = relationship("Showtime", back_populates="movie", cascade="all, delete-orphan")
