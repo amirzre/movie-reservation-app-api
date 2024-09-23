@@ -12,4 +12,5 @@ class ShowtimeController(BaseController[Showtime]):
         super().__init__(model=Showtime, repository=showtime_repository)
         self.showtime_repository = showtime_repository
 
-    ...
+    async def get_showtimes(self) -> list[Showtime]:
+        return await self.showtime_repository.get_showtimes(join_={"movie"})
