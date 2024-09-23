@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from pydantic import UUID4, BaseModel, ConfigDict, Field
+from pydantic import UUID4, BaseModel, ConfigDict, Field, PositiveInt
 
 
 class MovieResponse(BaseModel):
+    id: PositiveInt = Field(examples=[1])
     uuid: UUID4 = Field(examples=["a3b8f042-1e16-4f0a-a8f0-421e16df0a2f"])
     title: str = Field(examples=["Movie Title"])
     description: str = Field(examples=["Movie Description"])
