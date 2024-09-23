@@ -12,6 +12,6 @@ class ShowtimeResponse(BaseModel):
     end_time: FutureDatetime = Field(examples=["2024-09-17T06:18:12.176290"])
     available_seats: PositiveInt = Field(examples=[20])
     total_seats: PositiveInt = Field(examples=[100])
-    movie: MovieResponse
+    movie: MovieResponse | None
 
     model_config = ConfigDict(from_attributes=True)
