@@ -10,10 +10,19 @@ showtime_router = APIRouter()
 
 @showtime_router.get("/", dependencies=[Depends(get_authenticated_user)])
 async def get_showtimes(
-    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller)
+    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
 ) -> list[ShowtimeResponse]:
     """
     Retrieve showtimes.
     """
-    ...
     return await showtime_controller.get_showtimes()
+
+
+@showtime_router.get("/{id}", dependencies=[Depends(get_authenticated_user)])
+async def get_showtime(
+    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
+) -> ShowtimeResponse:
+    """
+    Retrieve an showtime.
+    """
+    return await showtime_controller.get_showtime(showtime_uuid=id)
