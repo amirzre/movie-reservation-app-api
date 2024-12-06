@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import Select
+from sqlalchemy import Select, select
 from sqlalchemy.orm import joinedload
 
-from app.models import Showtime
+from app.models import Movie, Showtime
 from core.repository import BaseRepository
 
 
@@ -40,6 +40,23 @@ class ShowtimeRepository(BaseRepository[Showtime]):
         if join_ is not None:
             return await self._all_unique(query)
 
+        return await self._one_or_none(query)
+
+    async def get_movie_by_id(self, id_: int, join_: set[str] | None = None) -> Movie:
+        """
+        Get Moive by id.
+
+        :param id: Movie id.
+        :param join_: Join relations.
+        :return: Movie.
+        """
+        query = select(Movie).filter(Movie.id == id_)
+        print("--------------query: ", query)
+
+        if join_ is not None and "showtime" in join_:
+            query = query.options(joinedload(Movie.showtimes))
+
+        print("--------------query 59: ", query)
         return await self._one_or_none(query)
 
     def _join_movie(self, query: Select) -> Select:
