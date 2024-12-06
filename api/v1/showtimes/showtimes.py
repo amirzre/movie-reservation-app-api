@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from uuid import UUID
 
 from app.controllers import ShowtimeController
+from app.schemas.request import CreateShowtimeRequest
 from app.schemas.response import ShowtimeResponse
 from core.factory import Factory
-from core.fastapi.dependencies import get_authenticated_user
+from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker, get_authenticated_user
 
 showtime_router = APIRouter()
 
@@ -20,9 +22,21 @@ async def get_showtimes(
 
 @showtime_router.get("/{id}", dependencies=[Depends(get_authenticated_user)])
 async def get_showtime(
+    id: UUID,
     showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
 ) -> ShowtimeResponse:
     """
     Retrieve an showtime.
     """
     return await showtime_controller.get_showtime(showtime_uuid=id)
+
+
+@showtime_router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
+async def create_showtime(
+    create_showtime_request: CreateShowtimeRequest,
+    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
+) -> ShowtimeResponse:
+    """
+    Create new showtime.
+    """
+    return await showtime_controller.create_showtime(create_showtime_request=create_showtime_request)
