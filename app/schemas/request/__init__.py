@@ -1,6 +1,6 @@
 from .auth import UserLoginRequest
 from .movie import CreateMovieRequest, MovieFilterParams, UpdateMovieRequest
-from .showtime import CreateShowtimeRequest
+from .showtime import CreateShowtimeRequest, ShowtimeFilterParams
 from .user import RegisterUserRequest, UpdateUserRequest, UserFilterParams
 
 __all__ = [
@@ -12,4 +12,5 @@ __all__ = [
     "UpdateMovieRequest",
     "MovieFilterParams",
     "CreateShowtimeRequest",
+    "ShowtimeFilterParams",
 ]
