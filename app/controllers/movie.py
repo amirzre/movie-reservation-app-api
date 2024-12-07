@@ -2,7 +2,8 @@ from pydantic import UUID4
 
 from app.models import Movie
 from app.repositories import MovieRepository
-from app.schemas.request import CreateMovieRequest, UpdateMovieRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import CreateMovieRequest, MovieFilterParams, UpdateMovieRequest
 from app.schemas.response import MovieResponse
 from core.controller import BaseController
 from core.db import Propagation, Transactional
@@ -17,6 +18,12 @@ class MovieController(BaseController[Movie]):
     def __init__(self, movie_repository: MovieRepository):
         super().__init__(model=Movie, repository=movie_repository)
         self.movie_repository = movie_repository
+
+    async def get_movies(self, *, filter_params: MovieFilterParams) -> PaginationResponse[MovieResponse]:
+        movies, total = await self.movie_repository.get_filtered_movies(filter_params=filter_params)
+        return PaginationResponse[MovieResponse](
+            limit=filter_params.limit, offset=filter_params.offset, total=total, items=movies
+        )
 
     async def get_movie(self, *, movie_uuid: UUID4) -> MovieResponse:
         movie = await self.movie_repository.get_by_uuid(uuid=movie_uuid)
