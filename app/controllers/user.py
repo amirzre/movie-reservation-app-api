@@ -2,7 +2,8 @@ from pydantic import UUID4
 
 from app.models import User
 from app.repositories import UserRepository
-from app.schemas.request import RegisterUserRequest, UpdateUserRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import RegisterUserRequest, UpdateUserRequest, UserFilterParams
 from app.schemas.response import UserResponse
 from core.controller import BaseController
 from core.db import Propagation, Transactional
@@ -18,6 +19,12 @@ class UserController(BaseController[User]):
     def __init__(self, user_repository: UserRepository):
         super().__init__(model=User, repository=user_repository)
         self.user_repository = user_repository
+
+    async def get_filtered_user(self, *, filter_params: UserFilterParams) -> PaginationResponse[UserResponse]:
+        users, total = await self.user_repository.get_filtered_users(filter_params=filter_params)
+        return PaginationResponse[UserResponse](
+            limit=filter_params.limit, offset=filter_params.offset, total=total, items=users
+        )
 
     async def get_user(self, *, user_uuid: UUID4) -> UserResponse:
         user = await self.user_repository.get_by_uuid(uuid=user_uuid)

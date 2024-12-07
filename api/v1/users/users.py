@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import UUID4
 
 from app.controllers import UserController
-from app.schemas.request import RegisterUserRequest, UpdateUserRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import RegisterUserRequest, UpdateUserRequest, UserFilterParams
 from app.schemas.response import UserResponse
 from core.factory import Factory
 from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker
@@ -11,11 +14,14 @@ user_router = APIRouter()
 
 
 @user_router.get("/", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
-async def get_users(user_controller: UserController = Depends(Factory().get_user_controller)) -> list[UserResponse]:
+async def get_users(
+    filter_params: Annotated[UserFilterParams, Query()],
+    user_controller: UserController = Depends(Factory().get_user_controller),
+) -> PaginationResponse[UserResponse]:
     """
     Retrieve users.
     """
-    return await user_controller.get_all()
+    return await user_controller.get_filtered_user(filter_params=filter_params)
 
 
 @user_router.get("/{id}", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
