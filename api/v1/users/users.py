@@ -1,9 +1,11 @@
-from uuid import UUID
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
+from pydantic import UUID4
 
 from app.controllers import UserController
-from app.schemas.request import RegisterUserRequest, UpdateUserRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import RegisterUserRequest, UpdateUserRequest, UserFilterParams
 from app.schemas.response import UserResponse
 from core.factory import Factory
 from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker
@@ -12,19 +14,22 @@ user_router = APIRouter()
 
 
 @user_router.get("/", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
-async def get_users(user_controller: UserController = Depends(Factory().get_user_controller)) -> list[UserResponse]:
+async def get_users(
+    filter_params: Annotated[UserFilterParams, Query()],
+    user_controller: UserController = Depends(Factory().get_user_controller),
+) -> PaginationResponse[UserResponse]:
     """
     Retrieve users.
     """
-    return await user_controller.get_all()
+    return await user_controller.get_filtered_user(filter_params=filter_params)
 
 
 @user_router.get("/{id}", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
-async def get_user(id=UUID, user_controller: UserController = Depends(Factory().get_user_controller)) -> UserResponse:
+async def get_user(id=UUID4, user_controller: UserController = Depends(Factory().get_user_controller)) -> UserResponse:
     """
     Retrieve user by ID.
     """
-    return await user_controller.get_by_uuid(uuid=id)
+    return await user_controller.get_user(user_uuid=id)
 
 
 @user_router.post("/", status_code=status.HTTP_201_CREATED)
@@ -35,40 +40,27 @@ async def register_user(
     """
     Register new user.
     """
-    return await user_controller.register(
-        email=register_user_request.email,
-        first_name=register_user_request.first_name,
-        last_name=register_user_request.last_name,
-        password=register_user_request.password,
-        role=register_user_request.role,
-        activated=register_user_request.activated,
-    )
+    return await user_controller.register_user(register_user_request=register_user_request)
 
 
 @user_router.put("/{id}")
 async def update_user(
-    id: UUID,
+    id: UUID4,
     update_user_request: UpdateUserRequest,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ) -> UserResponse:
     """
     Update a user.
     """
-    return await user_controller.update(
-        user_uuid=id,
-        email=update_user_request.email,
-        first_name=update_user_request.first_name,
-        last_name=update_user_request.last_name,
-        password=update_user_request.password,
-    )
+    return await user_controller.update_user(user_uuid=id, update_user_request=update_user_request)
 
 
 @user_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-    id: UUID,
+    id: UUID4,
     user_controller: UserController = Depends(Factory().get_user_controller),
 ) -> None:
     """
     Delete a user.
     """
-    return await user_controller.delete(user_uuid=id)
+    return await user_controller.delete_user(user_uuid=id)

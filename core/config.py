@@ -24,7 +24,7 @@ class Config(BaseConfig):
     WORKERS: int = 1
 
     POSTGRES_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation"
-    POSTGRES_TEST_URL: PostgresDsn
+    POSTGRES_TEST_URL: PostgresDsn = "postgresql+asyncpg://postgres:postgresql@127.0.0.1:5432/movie-reservation-test"
     REDIS_URL: RedisDsn = "redis://localhost:6379/0"
 
     SECRET_KEY: str = token_urlsafe(32)

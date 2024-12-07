@@ -28,11 +28,7 @@ async def login(
     """
     Login user.
     """
-    tokens = await auth_controller.login(
-        email=login_user_request.email,
-        password=login_user_request.password,
-        cache=cache,
-    )
+    tokens = await auth_controller.login(login_user_request=login_user_request, cache=cache)
 
     response.set_cookie(
         key="Access-Token",
@@ -96,7 +92,14 @@ async def me(
     """
     Retrieve current user information.
     """
-    return user
+    return UserResponse(
+        uuid=user.uuid,
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        role=user.role,
+        activated=user.activated,
+    )
 
 
 @auth_router.delete("/logout", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(get_authenticated_user)])

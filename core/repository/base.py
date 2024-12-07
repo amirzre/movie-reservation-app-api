@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import reduce
 from typing import Any, Generic, Type, TypeVar
 
 from pydantic import BaseModel
@@ -18,7 +19,7 @@ class BaseRepository(Generic[ModelType]):
         self.session = db_session
         self.model_class: Type[ModelType] = model
 
-    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100, join_: set[str] | None = None) -> list[ModelType]:
         """
         Returns a list of model instances.
 
@@ -26,8 +27,11 @@ class BaseRepository(Generic[ModelType]):
         :param limit: The number of record to return.
         :return: A list of model instances.
         """
-        query = self._query()
+        query = self._query(join_)
         query = query.offset(skip).limit(limit)
+
+        if join_ is not None:
+            return await self._all_unique(query)
 
         return await self._all(query)
 
@@ -35,6 +39,7 @@ class BaseRepository(Generic[ModelType]):
         self,
         field: str,
         value: Any,
+        join_: set[str] | None = None,
         unique: bool = False,
     ) -> ModelType:
         """
@@ -44,9 +49,11 @@ class BaseRepository(Generic[ModelType]):
         :param value: The value to match.
         :return: The model instance.
         """
-        query = self._query()
+        query = self._query(join_)
         query = await self._get_by(query, field, value)
 
+        if join_ is not None:
+            return await self._all_unique(query)
         if unique:
             return await self._one(query)
 
@@ -67,6 +74,8 @@ class BaseRepository(Generic[ModelType]):
 
         model = self.model_class(**data)
         self.session.add(model)
+        await self.session.commit()
+        await self.session.refresh(model)
         return model
 
     async def update(self, model: ModelType, attributes: dict[str, Any] | BaseModel) -> ModelType:
@@ -104,6 +113,7 @@ class BaseRepository(Generic[ModelType]):
 
     def _query(
         self,
+        join_: set[str] | None = None,
         order_: dict | None = None,
     ) -> Select:
         """
@@ -113,6 +123,7 @@ class BaseRepository(Generic[ModelType]):
         :return: A callable that can be used to query the model.
         """
         query = select(self.model_class)
+        query = self._maybe_join(query, join_)
         query = self._maybe_ordered(query, order_)
 
         return query
@@ -209,6 +220,22 @@ class BaseRepository(Generic[ModelType]):
         """
         return query.where(getattr(self.model_class, field) == value)
 
+    def _maybe_join(self, query: Select, join_: set[str] | None = None) -> Select:
+        """
+        Returns the query with the given joins.
+
+        :param query: The query to join.
+        :param join_: The joins to make.
+        :return: The query with the given joins.
+        """
+        if not join_:
+            return query
+
+        if not isinstance(join_, set):
+            raise TypeError("join_ must be a set")
+
+        return reduce(self._add_join_to_query, join_, query)
+
     def _maybe_ordered(self, query: Select, order_: dict | None = None) -> Select:
         """
         Returns the query ordered by the given column.
@@ -226,3 +253,13 @@ class BaseRepository(Generic[ModelType]):
                     query = query.order_by(getattr(self.model_class, order).desc())
 
         return query
+
+    def _add_join_to_query(self, query: Select, join_: set[str]) -> Select:
+        """
+        Returns the query with the given join.
+
+        :param query: The query to join.
+        :param join_: The join to make.
+        :return: The query with the given join.
+        """
+        return getattr(self, "_join_" + join_)(query)
