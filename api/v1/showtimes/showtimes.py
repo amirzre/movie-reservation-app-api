@@ -56,3 +56,16 @@ async def update_showtime(
     Update a showtime.
     """
     return await showtime_controller.update_showtime(showtime_uuid=id, update_showtime_request=update_showtime_request)
+
+
+@showtime_router.delete(
+    "/{id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(RoleChecker(ADMINISTRATIVE))]
+)
+async def delete_showtime(
+    id: UUID4,
+    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
+) -> None:
+    """
+    Delete a showtime.
+    """
+    return await showtime_controller.delete_showtime(showtime_uuid=id)
