@@ -26,7 +26,7 @@ class BaseController(Generic[ModelType]):
         :return: The model instance.
         """
 
-        db_obj = await self.repository.get_by(field="id", value=id_, join_=join_, unique=True)
+        db_obj = await self.repository.get_by(field="id", value=id_, unique=True)
         if not db_obj:
             raise NotFoundException(f"{self.model_class.__tablename__.title()} with id: {id} does not exist")
 
@@ -41,7 +41,7 @@ class BaseController(Generic[ModelType]):
         :return: The model instance.
         """
 
-        db_obj = await self.repository.get_by(field="uuid", value=uuid, join_=join_, unique=True)
+        db_obj = await self.repository.get_by(field="uuid", value=uuid, unique=True)
         if not db_obj:
             raise NotFoundException(f"{self.model_class.__tablename__.title()} with id: {uuid} does not exist")
         return db_obj
