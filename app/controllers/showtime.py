@@ -3,7 +3,7 @@ from pydantic import UUID4
 from app.models import Showtime
 from app.repositories import ShowtimeRepository
 from app.schemas.extras import PaginationResponse
-from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams
+from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams, UpdateShowtimeRequest
 from app.schemas.response import MovieResponse, ShowtimeResponse
 from core.controller import BaseController
 from core.db import Propagation, Transactional
@@ -66,4 +66,24 @@ class ShowtimeController(BaseController[Showtime]):
                 release_date=movie.release_date,
                 activated=movie.activated,
             ),
+        )
+
+    @Transactional(propagation=Propagation.REQUIRED)
+    async def update_showtime(
+        self, *, showtime_uuid: UUID4, update_showtime_request: UpdateShowtimeRequest
+    ) -> ShowtimeResponse:
+        showtime = await self.showtime_repository.get_by_uuid(uuid=showtime_uuid, join_={"movie"})
+        if not showtime:
+            raise NotFoundException(message="Showtime not found.")
+
+        updated_showtime = await self.showtime_repository.update(model=showtime, attributes=update_showtime_request)
+
+        return ShowtimeResponse(
+            id=updated_showtime.id,
+            uuid=updated_showtime.uuid,
+            start_time=updated_showtime.start_time,
+            end_time=updated_showtime.end_time,
+            available_seats=updated_showtime.available_seats,
+            total_seats=updated_showtime.total_seats,
+            movie=showtime.movie,
         )
