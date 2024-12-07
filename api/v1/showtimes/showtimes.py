@@ -5,7 +5,7 @@ from pydantic import UUID4
 
 from app.controllers import ShowtimeController
 from app.schemas.extras import PaginationResponse
-from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams
+from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams, UpdateShowtimeRequest
 from app.schemas.response import ShowtimeResponse
 from core.factory import Factory
 from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker, get_authenticated_user
@@ -44,3 +44,15 @@ async def create_showtime(
     Create new showtime.
     """
     return await showtime_controller.create_showtime(create_showtime_request=create_showtime_request)
+
+
+@showtime_router.put("/{id}", dependencies=[Depends(RoleChecker(ADMINISTRATIVE))])
+async def update_showtime(
+    id: UUID4,
+    update_showtime_request: UpdateShowtimeRequest,
+    showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
+) -> ShowtimeResponse:
+    """
+    Update a showtime.
+    """
+    return await showtime_controller.update_showtime(showtime_uuid=id, update_showtime_request=update_showtime_request)
