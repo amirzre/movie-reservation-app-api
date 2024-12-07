@@ -87,3 +87,11 @@ class ShowtimeController(BaseController[Showtime]):
             total_seats=updated_showtime.total_seats,
             movie=showtime.movie,
         )
+
+    @Transactional(propagation=Propagation.REQUIRED)
+    async def delete_showtime(self, showtime_uuid: UUID4) -> None:
+        showtime = await self.showtime_repository.get_by_uuid(uuid=showtime_uuid)
+        if not showtime:
+            raise NotFoundException(message="Showtime not found.")
+
+        return await self.showtime_repository.delete(model=showtime)
