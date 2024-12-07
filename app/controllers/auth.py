@@ -5,6 +5,7 @@ from redis.asyncio import client
 from app.models import User
 from app.repositories import UserRepository
 from app.schemas.extras import Token
+from app.schemas.request import UserLoginRequest
 from core.controller import BaseController
 from core.exceptions import BadRequestException, NotFoundException, UnauthorizedException
 from core.security import JWTHandler, PasswordHandler
@@ -15,11 +16,11 @@ class AuthController(BaseController[User]):
         super().__init__(model=User, repository=user_repository)
         self.user_repository = user_repository
 
-    async def login(self, *, email: str, password: str, cache: client.Redis) -> Token:
-        user = await self.user_repository.get_by_email(email=email)
+    async def login(self, *, login_user_request: UserLoginRequest, cache: client.Redis) -> Token:
+        user = await self.user_repository.get_by_email(email=login_user_request.email)
         if not user:
             raise BadRequestException(message="Invalid credentials.")
-        if not PasswordHandler.verify(user.password, password):
+        if not PasswordHandler.verify(user.password, login_user_request.password):
             raise BadRequestException(message="Invalid credentials.")
         if user.activated is False:
             raise BadRequestException(message="The user is inactive.")
