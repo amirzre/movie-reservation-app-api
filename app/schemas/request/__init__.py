@@ -1,5 +1,5 @@
 from .auth import UserLoginRequest
-from .movie import CreateMovieRequest, UpdateMovieRequest
+from .movie import CreateMovieRequest, MovieFilterParams, UpdateMovieRequest
 from .showtime import CreateShowtimeRequest
 from .user import RegisterUserRequest, UpdateUserRequest, UserFilterParams
 
@@ -10,5 +10,6 @@ __all__ = [
     "UserLoginRequest",
     "CreateMovieRequest",
     "UpdateMovieRequest",
+    "MovieFilterParams",
     "CreateShowtimeRequest",
 ]
