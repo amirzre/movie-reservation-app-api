@@ -13,6 +13,14 @@ class CreateShowtimeRequest(BaseModel):
     movie_id: PositiveInt = Field(description="ID of the movie for the showtime")
 
 
+class UpdateShowtimeRequest(BaseModel):
+    start_time: datetime | None = Field(None, description="Start time of the showtime")
+    end_time: FutureDatetime | None = Field(None, description="End time of the showtime")
+    available_seats: PositiveInt | None = Field(None, description="Number of available seats")
+    total_seats: PositiveInt | None = Field(None, description="Total seats in the showtime")
+    movie_id: PositiveInt | None = Field(None, description="ID of the movie for the showtime")
+
+
 class ShowtimeFilterParams(BaseFilterParams):
     start_time: datetime | None = Field(None)
     end_time: datetime | None = Field(None)
