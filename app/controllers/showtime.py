@@ -2,7 +2,8 @@ from pydantic import UUID4
 
 from app.models import Showtime
 from app.repositories import ShowtimeRepository
-from app.schemas.request import CreateShowtimeRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams
 from app.schemas.response import MovieResponse, ShowtimeResponse
 from core.controller import BaseController
 from core.db import Propagation, Transactional
@@ -18,8 +19,13 @@ class ShowtimeController(BaseController[Showtime]):
         super().__init__(model=Showtime, repository=showtime_repository)
         self.showtime_repository = showtime_repository
 
-    async def get_showtimes(self) -> list[Showtime]:
-        return await self.showtime_repository.get_showtimes(join_={"movie"})
+    async def get_showtimes(self, *, filter_params: ShowtimeFilterParams) -> PaginationResponse[ShowtimeResponse]:
+        showtimes, total = await self.showtime_repository.get_filtered_showtimes(
+            filter_params=filter_params, join_={"movie"}
+        )
+        return PaginationResponse[ShowtimeResponse](
+            limit=filter_params.limit, offset=filter_params.offset, total=total, items=showtimes
+        )
 
     async def get_showtime(self, *, showtime_uuid: UUID4) -> ShowtimeResponse:
         showtime = await self.showtime_repository.get_by_uuid(uuid=showtime_uuid, join_={"movie"})
