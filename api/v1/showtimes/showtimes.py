@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import UUID4
 
 from app.controllers import ShowtimeController
-from app.schemas.request import CreateShowtimeRequest
+from app.schemas.extras import PaginationResponse
+from app.schemas.request import CreateShowtimeRequest, ShowtimeFilterParams
 from app.schemas.response import ShowtimeResponse
 from core.factory import Factory
 from core.fastapi.dependencies import ADMINISTRATIVE, RoleChecker, get_authenticated_user
@@ -12,12 +15,13 @@ showtime_router = APIRouter()
 
 @showtime_router.get("/", dependencies=[Depends(get_authenticated_user)])
 async def get_showtimes(
+    filter_params: Annotated[ShowtimeFilterParams, Query()],
     showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
-) -> list[ShowtimeResponse]:
+) -> PaginationResponse[ShowtimeResponse]:
     """
     Retrieve showtimes.
     """
-    return await showtime_controller.get_showtimes()
+    return await showtime_controller.get_showtimes(filter_params=filter_params)
 
 
 @showtime_router.get("/{id}", dependencies=[Depends(get_authenticated_user)])
