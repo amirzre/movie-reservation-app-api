@@ -8,29 +8,29 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pydantic-settings = "^2.4.0"
-psycopg2 = "^2.9.9"
-SQLAlchemy = "^2.0.32"
-alembic = "^1.13.2"
-redis = "^5.0.8"
-PyJWT = "^2.9.0"
+pydantic-settings = "^2.6.1"
+psycopg2 = "^2.9.10"
+SQLAlchemy = "^2.0.36"
+alembic = "^1.14.0"
+redis = "^5.2.1"
+PyJWT = "^2.10.1"
 ujson = "^5.10.0"
-fastapi = {extras = ["standard"], version = "^0.112.0"}
-asyncpg = "^0.29.0"
-bcrypt = "^4.2.0"
+fastapi = {extras = ["standard"], version = "^0.115.6"}
+asyncpg = "^0.30.0"
+bcrypt = "^4.2.1"
 passlib = "^1.7.4"
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
-pytest-asyncio = "^0.23.8"
-factory-boy = "^3.3.0"
-faker = "^27.0.0"
-mypy = "^1.11.1"
-ruff = "^0.6.0"
-pre-commit = "^3.8.0"
+pytest = "^8.3.4"
+pytest-asyncio = "^0.24.0"
+factory-boy = "^3.3.1"
+faker = "^33.1.0"
+mypy = "^1.13.0"
+ruff = "^0.8.2"
+pre-commit = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core"]
