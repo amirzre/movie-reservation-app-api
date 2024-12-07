@@ -1,7 +1,7 @@
 from datetime import datetime
-from functools import reduce
 from typing import Any, Generic, Type, TypeVar
 
+from pydantic import BaseModel
 from sqlalchemy import Select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import select
@@ -18,20 +18,16 @@ class BaseRepository(Generic[ModelType]):
         self.session = db_session
         self.model_class: Type[ModelType] = model
 
-    async def get_all(self, skip: int = 0, limit: int = 100, join_: set[str] | None = None) -> list[ModelType]:
+    async def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelType]:
         """
         Returns a list of model instances.
 
         :param skip: The number of records to skip.
         :param limit: The number of record to return.
-        :param join_: The joins to make.
         :return: A list of model instances.
         """
-        query = self._query(join_)
+        query = self._query()
         query = query.offset(skip).limit(limit)
-
-        if join_ is not None:
-            return await self.all_unique(query)
 
         return await self._all(query)
 
@@ -39,7 +35,6 @@ class BaseRepository(Generic[ModelType]):
         self,
         field: str,
         value: Any,
-        join_: set[str] | None = None,
         unique: bool = False,
     ) -> ModelType:
         """
@@ -47,50 +42,48 @@ class BaseRepository(Generic[ModelType]):
 
         :param field: The field to match.
         :param value: The value to match.
-        :param join_: The joins to make.
         :return: The model instance.
         """
-        query = self._query(join_)
+        query = self._query()
         query = await self._get_by(query, field, value)
 
-        if join_ is not None:
-            return await self.all_unique(query)
         if unique:
             return await self._one(query)
 
         return await self._all(query)
 
-    async def create(self, attributes: dict[str, Any] = None) -> ModelType:
+    async def create(self, attributes: dict[str, Any] | BaseModel) -> ModelType:
         """
         Creates the model instance.
 
-        :param attributes: The attributes to create the model with.
+        :param attributes: The Pydantic model or dictionary of attributes to create the model with.
         :return: The created model instance.
         """
-        if attributes is None:
-            attributes = {}
+        data = attributes.model_dump(exclude_unset=True) if isinstance(attributes, BaseModel) else attributes
 
-        for key, value in attributes.items():
+        for key, value in data.items():
             if isinstance(value, datetime) and value.tzinfo is not None:
-                attributes[key] = value.replace(tzinfo=None)
+                data[key] = value.replace(tzinfo=None)
 
-        model = self.model_class(**attributes)
+        model = self.model_class(**data)
         self.session.add(model)
         return model
 
-    async def update(self, model: ModelType, attributes: dict[str, Any]) -> ModelType:
+    async def update(self, model: ModelType, attributes: dict[str, Any] | BaseModel) -> ModelType:
         """
         Updates the model instance with the given attributes.
 
         :param model: The model instance to update.
-        :param attributes: A dictionary of attributes to update the model with.
+        :param attributes: A Pydantic model or dictionary of attributes to update the model with.
         :return: The updated model instance.
         """
-        for key, value in attributes.items():
+        data = attributes.model_dump(exclude_unset=True) if isinstance(attributes, BaseModel) else attributes
+
+        for key, value in data.items():
             if isinstance(value, datetime):
                 if value.tzinfo is not None:
                     value = value.replace(tzinfo=None)
-                attributes[key] = value
+                data[key] = value
             setattr(model, key, value)
 
         if hasattr(model, "updated"):
@@ -111,18 +104,15 @@ class BaseRepository(Generic[ModelType]):
 
     def _query(
         self,
-        join_: set[str] | None = None,
         order_: dict | None = None,
     ) -> Select:
         """
         Returns a callable that can be used to query the model.
 
-        :param join_: The joins to make.
         :param order_: The order of the results. (e.g desc, asc)
         :return: A callable that can be used to query the model.
         """
         query = select(self.model_class)
-        query = self._maybe_join(query, join_)
         query = self._maybe_ordered(query, order_)
 
         return query
@@ -219,22 +209,6 @@ class BaseRepository(Generic[ModelType]):
         """
         return query.where(getattr(self.model_class, field) == value)
 
-    def _maybe_join(self, query: Select, join_: set[str] | None = None) -> Select:
-        """
-        Returns the query with the given joins.
-
-        :param query: The query to join.
-        :param join_: The joins to make.
-        :return: The query with the given joins.
-        """
-        if not join_:
-            return query
-
-        if not isinstance(join_, set):
-            raise TypeError("join_ must be a set")
-
-        return reduce(self._add_join_to_query, join_, query)
-
     def _maybe_ordered(self, query: Select, order_: dict | None = None) -> Select:
         """
         Returns the query ordered by the given column.
@@ -252,13 +226,3 @@ class BaseRepository(Generic[ModelType]):
                     query = query.order_by(getattr(self.model_class, order).desc())
 
         return query
-
-    def _add_join_to_query(self, query: Select, join_: set[str]) -> Select:
-        """
-        Returns the query with the given join.
-
-        :param query: The query to join.
-        :param join_: The join to make.
-        :return: The query with the given join.
-        """
-        return getattr(self, "_join_" + join_)(query)
