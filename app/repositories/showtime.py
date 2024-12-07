@@ -4,6 +4,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.orm import joinedload
 
 from app.models import Movie, Showtime
+from app.schemas.request import ShowtimeFilterParams
 from core.repository import BaseRepository
 
 
@@ -12,19 +13,45 @@ class ShowtimeRepository(BaseRepository[Showtime]):
     Showtime repository provides all the database operations for the Showtime model.
     """
 
-    async def get_showtimes(self, join_: set[str] | None = None) -> list[Showtime]:
+    async def get_filtered_showtimes(
+        self, filter_params: ShowtimeFilterParams, join_: set[str] | None = None
+    ) -> tuple[list[Showtime], int]:
         """
-        Retrieve all showtimes with their related movies.
+        Retrieve showtimes by filter and their related movies.
 
         :param join_: Join relations.
-        :return: Showtimes list.
+        :param filter_params: showtime filter parameters.
+        :return: a tuple of list of showtimes and the total count of matching users.
         """
         query = self._query(join_)
 
         if join_ and "movie" in join_:
             query = self._join_movie(query)
 
-        return await self._all(query)
+        if filter_params.start_time:
+            query = query.filter(Showtime.start_time == filter_params.start_time)
+        if filter_params.end_time:
+            query = query.filter(Showtime.end_time == filter_params.end_time)
+
+        if filter_params.created_from:
+            query = query.filter(Showtime.created >= filter_params.created_from)
+        if filter_params.created_to:
+            query = query.filter(Showtime.created <= filter_params.created_to)
+
+        if filter_params.updated_from:
+            query = query.filter(Showtime.updated >= filter_params.updated_from)
+        if filter_params.updated_to:
+            query = query.filter(Showtime.updated <= filter_params.updated_to)
+
+        order_column = Showtime.created if filter_params.order_by == "created" else Showtime.updated
+        query = query.order_by(order_column)
+
+        paginated_query = query.limit(filter_params.limit).offset(filter_params.offset)
+
+        showtimes = await self._all(query=paginated_query)
+        total = await self._count(query=query)
+
+        return showtimes, total
 
     async def get_by_uuid(self, uuid: UUID, join_: set[str] | None = None) -> Showtime | None:
         """
