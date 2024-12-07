@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
+from pydantic import UUID4
 from sqlalchemy import UUID, BigInteger, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +13,7 @@ class Showtime(Base, TimestampMixin):
     __tablename__ = "showtimes"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    uuid: Mapped[UUID] = mapped_column(UUID, unique=True, index=True, default=uuid4)
+    uuid: Mapped[UUID4] = mapped_column(UUID, unique=True, index=True, default=uuid4)
     start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     end_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     available_seats: Mapped[int] = mapped_column(Integer, nullable=False)

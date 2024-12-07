@@ -38,7 +38,7 @@ class ShowtimeRepository(BaseRepository[Showtime]):
         query = query.filter(Showtime.uuid == uuid)
 
         if join_ is not None:
-            return await self._all_unique(query)
+            query = self._join_movie(query)
 
         return await self._one_or_none(query)
 
@@ -51,12 +51,10 @@ class ShowtimeRepository(BaseRepository[Showtime]):
         :return: Movie.
         """
         query = select(Movie).filter(Movie.id == id_)
-        print("--------------query: ", query)
 
         if join_ is not None and "showtime" in join_:
             query = query.options(joinedload(Movie.showtimes))
 
-        print("--------------query 59: ", query)
         return await self._one_or_none(query)
 
     def _join_movie(self, query: Select) -> Select:

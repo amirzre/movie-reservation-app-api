@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, status
-from uuid import UUID
+from pydantic import UUID4
 
 from app.controllers import ShowtimeController
 from app.schemas.request import CreateShowtimeRequest
@@ -22,7 +22,7 @@ async def get_showtimes(
 
 @showtime_router.get("/{id}", dependencies=[Depends(get_authenticated_user)])
 async def get_showtime(
-    id: UUID,
+    id: UUID4,
     showtime_controller: ShowtimeController = Depends(Factory().get_showtime_controller),
 ) -> ShowtimeResponse:
     """
