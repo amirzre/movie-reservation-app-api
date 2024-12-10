@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from pydantic import UUID4
 from sqlalchemy import UUID, BigInteger, Boolean, Enum, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.db import Base
 from core.db.mixins import TimestampMixin
@@ -26,3 +26,5 @@ class User(Base, TimestampMixin):
     password: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.USER, nullable=False)
     activated: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    reservations = relationship("Reservation", back_populates="user")
