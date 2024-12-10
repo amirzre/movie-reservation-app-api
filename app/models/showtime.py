@@ -22,3 +22,4 @@ class Showtime(Base, TimestampMixin):
 
     movie = relationship("Movie", back_populates="showtimes")
     reservations = relationship("Reservation", back_populates="showtime", cascade="all, delete-orphan")
+    seats = relationship("Seat", back_populates="showtime", cascade="all, delete-orphan")
