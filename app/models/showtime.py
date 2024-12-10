@@ -21,3 +21,5 @@ class Showtime(Base, TimestampMixin):
     movie_id: Mapped[int] = mapped_column(Integer, ForeignKey("movies.id", ondelete="CASCADE"), nullable=False)
 
     movie = relationship("Movie", back_populates="showtimes")
+    reservations = relationship("Reservation", back_populates="showtime", cascade="all, delete-orphan")
+    seats = relationship("Seat", back_populates="showtime", cascade="all, delete-orphan")
