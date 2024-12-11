@@ -1,5 +1,4 @@
-from uuid import UUID
-
+from pydantic import UUID4
 from sqlalchemy import Select, select
 from sqlalchemy.orm import joinedload
 
@@ -53,7 +52,7 @@ class ShowtimeRepository(BaseRepository[Showtime]):
 
         return showtimes, total
 
-    async def get_by_uuid(self, uuid: UUID, join_: set[str] | None = None) -> Showtime | None:
+    async def get_by_uuid(self, uuid: UUID4, join_: set[str] | None = None) -> Showtime | None:
         """
         Get showtime by uuid.
 
