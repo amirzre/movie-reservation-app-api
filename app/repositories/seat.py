@@ -10,7 +10,7 @@ class SeatRepository(BaseRepository[Seat]):
     Seat repository provides all the database operations for the Seat model.
     """
 
-    async def get_filtered_seats(self, filter_params: SeatFilterParams) -> tuple[list[Seat], int]:
+    async def get_filtered_seats(self, filter_params: SeatFilterParams, join_: set[str] | None = None) -> tuple[list[Seat], int]:
         """
         Retrieve seats by filter.
 
@@ -19,6 +19,9 @@ class SeatRepository(BaseRepository[Seat]):
         :return: a tuple of list of seats and the total count of matching users.
         """
         query = self._query()
+
+        if join_ is not None:
+            query = self._query(join_)
 
         if filter_params.seat_number:
             query = query.filter(Seat.seat_number == filter_params.seat_number)

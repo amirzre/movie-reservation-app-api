@@ -16,7 +16,8 @@ class SeatController(BaseController[Seat]):
         self.seat_repository = seat_repository
 
     async def get_seats(self, *, filter_params: SeatFilterParams) -> PaginationResponse[SeatResponse]:
-        seats, total = await self.seat_repository.get_filtered_seats(filter_params=filter_params)
+        
+        seats, total = await self.seat_repository.get_filtered_seats(filter_params=filter_params, join_={"showtime"})
 
         return PaginationResponse[SeatResponse](
             limit=filter_params.limit, offset=filter_params.offset, total=total, items=seats
